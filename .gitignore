@@ -8,5 +8,4 @@
 # Testing
 *.test
 *.tmp
-.env
 flagship
