@@ -23,7 +23,7 @@ func (buctingPolling *BuctingPolling) writeBucktingFile(buffer []byte) error {
 		bucketingDirectory = buctingPolling.FlagshipConfig.BucketingDirectory
 	}
 
-	filePath := bucketingDirectory + "/Bucketing.json"
+	filePath := bucketingDirectory + "/bucketing.json"
 
 	if len(buffer) == 0 {
 		return fmt.Errorf("response content null")
