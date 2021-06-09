@@ -3,17 +3,19 @@ package main
 import (
 	"flagship-io/flagship-sync-agent/lib"
 	"fmt"
+	"net/http"
 	"time"
 )
 
 func main() {
 
 	var flagshipConfig lib.FlagshipConfig
-	var BucketingPolling lib.BuctingPolling
+	var BucketingPolling lib.BucketingPolling
+	var HttpClient http.Client
 
 	flagshipConfig.New()
 
-	BucketingPolling.New(&flagshipConfig)
+	BucketingPolling.New(&flagshipConfig, &HttpClient)
 
 	for {
 		fmt.Println("Polling start")
