@@ -7,20 +7,29 @@ import (
 	"os"
 )
 
-type BuctingPolling struct {
+const (
+	BucketingApiUrl = "https://cdn.flagship.io/%s/bucketing.json"
+)
+
+var osCreate = os.Create
+
+type BucketingPolling struct {
 	FlagshipConfig *FlagshipConfig
+	HttpClient     *http.Client
+	BaseUrl        string
 }
 
-func (buctingPolling *BuctingPolling) New(flagshipConfig *FlagshipConfig) *BuctingPolling {
-	buctingPolling.FlagshipConfig = flagshipConfig
-	return buctingPolling
+func (bucketingPolling *BucketingPolling) New(flagshipConfig *FlagshipConfig, httpClient *http.Client) *BucketingPolling {
+	bucketingPolling.FlagshipConfig = flagshipConfig
+	bucketingPolling.HttpClient = httpClient
+	return bucketingPolling
 }
 
-func (buctingPolling *BuctingPolling) writeBucktingFile(buffer []byte) error {
+func (bucketingPolling *BucketingPolling) writeBucketingFile(buffer []byte) error {
 
 	bucketingDirectory := "flagship"
-	if buctingPolling.FlagshipConfig.BucketingDirectory != "" {
-		bucketingDirectory = buctingPolling.FlagshipConfig.BucketingDirectory
+	if bucketingPolling.FlagshipConfig.BucketingDirectory != "" {
+		bucketingDirectory = bucketingPolling.FlagshipConfig.BucketingDirectory
 	}
 
 	filePath := bucketingDirectory + "/bucketing.json"
@@ -32,11 +41,11 @@ func (buctingPolling *BuctingPolling) writeBucktingFile(buffer []byte) error {
 	if _, err := os.Stat(bucketingDirectory); os.IsNotExist(err) {
 		err := os.Mkdir(bucketingDirectory, os.ModeDir)
 		if err != nil {
-			return fmt.Errorf("mkdir directory %s error", buctingPolling.FlagshipConfig.BucketingDirectory)
+			return fmt.Errorf("mkdir directory %s error", bucketingPolling.FlagshipConfig.BucketingDirectory)
 		}
 	}
 
-	bucketingFile, err := os.Create(filePath)
+	bucketingFile, err := osCreate(filePath)
 	if err != nil {
 		return err
 	}
@@ -57,23 +66,27 @@ func (buctingPolling *BuctingPolling) writeBucktingFile(buffer []byte) error {
 	return nil
 }
 
-func (buctingPolling *BuctingPolling) Polling() error {
+func (bucketingPolling *BucketingPolling) Polling() error {
 
-	_, err := buctingPolling.FlagshipConfig.GetConfig()
-
-	if err != nil {
-		return err
-	}
-
-	bucketingApiUrl := "https://cdn.flagship.io/%s/bucketing.json"
-	bucketingApiUrl = fmt.Sprintf(bucketingApiUrl, buctingPolling.FlagshipConfig.EnvId)
-	response, err := http.Get(bucketingApiUrl)
+	_, err := bucketingPolling.FlagshipConfig.GetConfig()
 
 	if err != nil {
 		return err
 	}
 
-	defer response.Body.Close()
+	bucketingApiUrl := fmt.Sprintf(BucketingApiUrl, bucketingPolling.FlagshipConfig.EnvId)
+	response, err := bucketingPolling.HttpClient.Get(bucketingApiUrl)
+
+	if err != nil {
+		return err
+	}
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(response.Body)
 
 	if response.StatusCode != 200 && response.StatusCode != 304 {
 		return fmt.Errorf("%s", response.Body)
@@ -85,7 +98,7 @@ func (buctingPolling *BuctingPolling) Polling() error {
 		return err
 	}
 
-	err = buctingPolling.writeBucktingFile(body)
+	err = bucketingPolling.writeBucketingFile(body)
 
 	if err != nil {
 		return err
