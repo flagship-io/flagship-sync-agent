@@ -9,6 +9,16 @@ import (
 	"strconv"
 )
 
+const (
+	FlagshipConfigFile         = "FLAGSHIP_CONFIG_FILE"
+	FlagshipEnvId              = "FLAGSHIP_ENV_ID"
+	FlagshipPollingInterval    = "FLAGSHIP_POLLING_INTERVAL"
+	FlagshipBucketingDirectory = "FLAGSHIP_BUCKETING_DIRECTORY"
+	FlagshipEnvIdErrorMessage  = "environment variable \"FLAGSHIP_ENV_ID\" is empty"
+	BucketingDirectoryError    = "environment variable \"FLAGSHIP_BUCKETING_DIRECTORY\" is empty or not set, default value will be used"
+	FlagshipConfigEnvIdError   = "flagshipConfig file envId field is empty"
+)
+
 type FlagshipConfig struct {
 	EnvId              string `json:"envId"`
 	PollingInterval    int    `json:"pollingInterval"`
@@ -30,34 +40,30 @@ func (flagshipConfig *FlagshipConfig) New() *FlagshipConfig {
 	flag.Parse()
 
 	if *flagshipConfigFile != "" {
-		os.Setenv("FLAGSHIP_CONFIG_FILE", *flagshipConfigFile)
+		_ = os.Setenv(FlagshipConfigFile, *flagshipConfigFile)
 	} else if *flagshipConfigFileShort != "" {
-		os.Setenv("FLAGSHIP_CONFIG_FILE", *flagshipConfigFileShort)
+		_ = os.Setenv(FlagshipConfigFile, *flagshipConfigFileShort)
 	}
 
 	if *envId != "" {
-		os.Setenv("FLAGSHIP_ENV_ID", *envId)
+		_ = os.Setenv(FlagshipEnvId, *envId)
 	}
 
 	if *pollingInterval > -1 {
-		os.Setenv("FLAGSHIP_POLLING_INTERVAL", strconv.Itoa(*pollingInterval))
+		_ = os.Setenv(FlagshipPollingInterval, strconv.Itoa(*pollingInterval))
 	} else if *pollingIntervalShort > -1 {
-		os.Setenv("FLAGSHIP_POLLING_INTERVAL", strconv.Itoa(*pollingIntervalShort))
+		_ = os.Setenv(FlagshipPollingInterval, strconv.Itoa(*pollingIntervalShort))
 	}
 
 	if *bucketingDirectory != "" {
-		os.Setenv("FLAGSHIP_BUCKETING_DIRECTORY", *bucketingDirectory)
+		_ = os.Setenv(FlagshipBucketingDirectory, *bucketingDirectory)
 	} else if *bucketingDirectoryShort != "" {
-		os.Setenv("FLAGSHIP_BUCKETING_DIRECTORY", *bucketingDirectoryShort)
+		_ = os.Setenv(FlagshipBucketingDirectory, *bucketingDirectoryShort)
 	}
 	return flagshipConfig
 }
 
 func (flagshipConfig *FlagshipConfig) getFlagshipConfigFile(flagshipConfigPath string) (*FlagshipConfig, error) {
-
-	if flagshipConfigPath == "" {
-		return nil, fmt.Errorf("FlagshipConfig path is empty")
-	}
 
 	file, err := os.Open(flagshipConfigPath)
 
@@ -65,7 +71,12 @@ func (flagshipConfig *FlagshipConfig) getFlagshipConfigFile(flagshipConfigPath s
 		return nil, err
 	}
 
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(file)
 
 	fileBytes, err := io.ReadAll(file)
 
@@ -82,7 +93,7 @@ func (flagshipConfig *FlagshipConfig) getFlagshipConfigFile(flagshipConfigPath s
 	}
 
 	if flagshipConfig.EnvId == "" {
-		return nil, fmt.Errorf("flagshipConfig file envId field is empty")
+		return nil, fmt.Errorf(FlagshipConfigEnvIdError)
 	}
 
 	return flagshipConfig, nil
@@ -90,26 +101,26 @@ func (flagshipConfig *FlagshipConfig) getFlagshipConfigFile(flagshipConfigPath s
 
 func (flagshipConfig *FlagshipConfig) getConfigFromEnv() (*FlagshipConfig, error) {
 
-	envId := os.Getenv("FLAGSHIP_ENV_ID")
+	envId := os.Getenv(FlagshipEnvId)
 	if envId == "" {
-		return nil, fmt.Errorf("environment variable \"FLAGSHIP_ENV_ID\" is empty")
+		return nil, fmt.Errorf(FlagshipEnvIdErrorMessage)
 	}
 
 	flagshipConfig.EnvId = envId
 
-	bucketingDirectory := os.Getenv("FLAGSHIP_BUCKETING_DIRECTORY")
+	bucketingDirectory := os.Getenv(FlagshipBucketingDirectory)
 
 	if bucketingDirectory == "" {
-		fmt.Println("environement variable \"FLAGSHIP_BUCKETING_DIRECTORY\" is empty or not set, default value will be used")
+		fmt.Println(BucketingDirectoryError)
 	}
 
 	flagshipConfig.BucketingDirectory = bucketingDirectory
 
-	envPollingInterval := os.Getenv("FLAGSHIP_POLLING_INTERVAL")
+	envPollingInterval := os.Getenv(FlagshipPollingInterval)
 
 	if envPollingInterval == "" {
 		flagshipConfig.PollingInterval = 2000
-		fmt.Println("environement variable \"FLAGSHIP_POLLING_INTERVAL\" is empty or not set, default value will be usedm 2000ms")
+		fmt.Println("environment variable \"FLAGSHIP_POLLING_INTERVAL\" is empty or not set, default value will be used 2000ms")
 	} else {
 		pollingInterval, err := strconv.Atoi(envPollingInterval)
 		if err != nil {
@@ -124,7 +135,7 @@ func (flagshipConfig *FlagshipConfig) getConfigFromEnv() (*FlagshipConfig, error
 
 func (flagshipConfig *FlagshipConfig) GetConfig() (*FlagshipConfig, error) {
 
-	flagshipConfigPath := os.Getenv("FLAGSHIP_CONFIG_FILE")
+	flagshipConfigPath := os.Getenv(FlagshipConfigFile)
 	if flagshipConfigPath != "" {
 		flagshipConfig, err := flagshipConfig.getFlagshipConfigFile(flagshipConfigPath)
 		if err != nil {
