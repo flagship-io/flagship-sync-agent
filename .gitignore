@@ -9,3 +9,6 @@
 *.test
 *.tmp
 flagship
+.idea
+cover.html
+cover.txt
