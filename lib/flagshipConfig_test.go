@@ -27,7 +27,7 @@ func TestNewConfigFile(t *testing.T) {
 
 	//Test FLAGSHIP_CONFIG_FILE
 	configFile := "flagship.json"
-	os.Args = []string{"cmd", "-flagshipConfigFile=" + configFile}
+	os.Args = []string{"cmd", "-config=" + configFile}
 	flagshipConfig = FlagshipConfig{}
 	flagshipConfig.New()
 	if os.Getenv(FlagshipConfigFile) != configFile {
@@ -42,7 +42,7 @@ func TestNewConfigFileShort(t *testing.T) {
 
 	//Test FLAGSHIP_CONFIG_FILE
 	configFile := "flagship.json"
-	os.Args = []string{"cmd", "-f=" + configFile}
+	os.Args = []string{"cmd", "-c=" + configFile}
 	flagshipConfig = FlagshipConfig{}
 	flagshipConfig.New()
 	if os.Getenv(FlagshipConfigFile) != configFile {
@@ -58,7 +58,7 @@ func TestNewConfigFileShortAndLong(t *testing.T) {
 	//Test FLAGSHIP_CONFIG_FILE
 	configFileLong := "flagship.json"
 	configFileShort := "shortConfig.json"
-	os.Args = []string{"cmd", "-f=" + configFileShort, "-flagshipConfigFile=" + configFileLong}
+	os.Args = []string{"cmd", "-c=" + configFileShort, "-config=" + configFileLong}
 	flagshipConfig = FlagshipConfig{}
 	flagshipConfig.New()
 	if os.Getenv(FlagshipConfigFile) != configFileLong {
@@ -132,7 +132,7 @@ func TestNewBucketingDirectoryLong(t *testing.T) {
 
 	//Test FLAGSHIP_BUCKETING_DIRECTORY
 	bucketingDirectory := "flagshipDirectory"
-	os.Args = []string{"cmd", "-bucketingDirectory=" + bucketingDirectory}
+	os.Args = []string{"cmd", "-bucketingPath=" + bucketingDirectory}
 	flagshipConfig = FlagshipConfig{}
 	flagshipConfig.New()
 	if os.Getenv(FlagshipBucketingDirectory) != bucketingDirectory {
@@ -163,7 +163,7 @@ func TestNewBucketingDirectoryShortAndLong(t *testing.T) {
 	//Test FLAGSHIP_BUCKETING_DIRECTORY
 	bucketingDirectoryLong := "flagshipDirectoryLong"
 	bucketingDirectoryShort := "flagshipDirectoryShort"
-	os.Args = []string{"cmd", "-b=" + bucketingDirectoryShort, "-bucketingDirectory=" + bucketingDirectoryLong}
+	os.Args = []string{"cmd", "-b=" + bucketingDirectoryShort, "-bucketingPath=" + bucketingDirectoryLong}
 	flagshipConfig = FlagshipConfig{}
 	flagshipConfig.New()
 	if os.Getenv(FlagshipBucketingDirectory) != bucketingDirectoryLong {

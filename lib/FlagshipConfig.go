@@ -14,9 +14,9 @@ const (
 	FlagshipEnvId              = "FLAGSHIP_ENV_ID"
 	FlagshipPollingInterval    = "FLAGSHIP_POLLING_INTERVAL"
 	FlagshipBucketingDirectory = "FLAGSHIP_BUCKETING_DIRECTORY"
-	FlagshipEnvIdErrorMessage  = "environment variable \"FLAGSHIP_ENV_ID\" is empty"
-	BucketingDirectoryError    = "environment variable \"FLAGSHIP_BUCKETING_DIRECTORY\" is empty or not set, default value will be used"
-	FlagshipConfigEnvIdError   = "flagshipConfig file envId field is empty"
+	FlagshipEnvIdErrorMessage  = "argument envId is required"
+	BucketingDirectoryError    = "environment variable bucketingPath is empty or not set, default value will be used"
+	FlagshipConfigEnvIdError   = "flagshipConfig file envId field is required"
 )
 
 type FlagshipConfig struct {
@@ -27,15 +27,15 @@ type FlagshipConfig struct {
 
 func (flagshipConfig *FlagshipConfig) New() *FlagshipConfig {
 
-	flagshipConfigFile := flag.String("flagshipConfigFile", "", "flagshipConfigFile")
-	flagshipConfigFileShort := flag.String("f", "", "flagshipConfigFile short argument")
+	flagshipConfigFile := flag.String("config", "", "flagship ConfigFile")
+	flagshipConfigFileShort := flag.String("c", "", "flagshipConfigFile short argument")
 	envId := flag.String("envId", "", "environment Id")
 
 	pollingInterval := flag.Int("pollingInterval", -1, "pollingInterval")
 	pollingIntervalShort := flag.Int("p", -1, "pollingInterval short argument")
 
-	bucketingDirectory := flag.String("bucketingDirectory", "", "bucketingDirectory")
-	bucketingDirectoryShort := flag.String("b", "", "bucketingDirectory short argument")
+	bucketingDirectory := flag.String("bucketingPath", "", "bucketing Directory path")
+	bucketingDirectoryShort := flag.String("b", "", "bucketing Directory path short argument")
 
 	flag.Parse()
 
@@ -120,12 +120,12 @@ func (flagshipConfig *FlagshipConfig) getConfigFromEnv() (*FlagshipConfig, error
 
 	if envPollingInterval == "" {
 		flagshipConfig.PollingInterval = 2000
-		fmt.Println("environment variable \"FLAGSHIP_POLLING_INTERVAL\" is empty or not set, default value will be used 2000ms")
+		fmt.Println("argument pollingInterval is empty or not set, default value will be used 2000ms")
 	} else {
 		pollingInterval, err := strconv.Atoi(envPollingInterval)
 		if err != nil {
 			pollingInterval = 2000
-			fmt.Printf("environement variable \"FLAGSHIP_POLLING_INTERVAL\" is not an int, default value will be usedm 2000ms")
+			fmt.Printf("argument bucketingPath is not an int, default value will be used 2000ms")
 		}
 		flagshipConfig.PollingInterval = pollingInterval
 	}
