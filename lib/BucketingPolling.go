@@ -28,8 +28,8 @@ func (bucketingPolling *BucketingPolling) New(flagshipConfig *FlagshipConfig, ht
 func (bucketingPolling *BucketingPolling) writeBucketingFile(buffer []byte) error {
 
 	bucketingDirectory := "flagship"
-	if bucketingPolling.FlagshipConfig.BucketingDirectory != "" {
-		bucketingDirectory = bucketingPolling.FlagshipConfig.BucketingDirectory
+	if bucketingPolling.FlagshipConfig.BucketingPath != "" {
+		bucketingDirectory = bucketingPolling.FlagshipConfig.BucketingPath
 	}
 
 	filePath := bucketingDirectory + "/bucketing.json"
@@ -41,7 +41,7 @@ func (bucketingPolling *BucketingPolling) writeBucketingFile(buffer []byte) erro
 	if _, err := os.Stat(bucketingDirectory); os.IsNotExist(err) {
 		err := os.Mkdir(bucketingDirectory, os.ModeDir)
 		if err != nil {
-			return fmt.Errorf("mkdir directory %s error", bucketingPolling.FlagshipConfig.BucketingDirectory)
+			return fmt.Errorf("mkdir directory %s error", bucketingPolling.FlagshipConfig.BucketingPath)
 		}
 	}
 

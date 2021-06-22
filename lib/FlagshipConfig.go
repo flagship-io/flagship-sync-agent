@@ -20,9 +20,9 @@ const (
 )
 
 type FlagshipConfig struct {
-	EnvId              string `json:"envId"`
-	PollingInterval    int    `json:"pollingInterval"`
-	BucketingDirectory string `json:"bucketingDirectory"`
+	EnvId           string `json:"envId"`
+	PollingInterval int    `json:"pollingInterval"`
+	BucketingPath   string `json:"bucketingPath"`
 }
 
 func (flagshipConfig *FlagshipConfig) New() *FlagshipConfig {
@@ -114,7 +114,7 @@ func (flagshipConfig *FlagshipConfig) getConfigFromEnv() (*FlagshipConfig, error
 		fmt.Println(BucketingDirectoryError)
 	}
 
-	flagshipConfig.BucketingDirectory = bucketingDirectory
+	flagshipConfig.BucketingPath = bucketingDirectory
 
 	envPollingInterval := os.Getenv(FlagshipPollingInterval)
 
@@ -125,7 +125,7 @@ func (flagshipConfig *FlagshipConfig) getConfigFromEnv() (*FlagshipConfig, error
 		pollingInterval, err := strconv.Atoi(envPollingInterval)
 		if err != nil {
 			pollingInterval = 2000
-			fmt.Printf("argument bucketingPath is not an int, default value will be used 2000ms")
+			fmt.Printf("argument pollingInterval is not an int, default value will be used 2000ms")
 		}
 		flagshipConfig.PollingInterval = pollingInterval
 	}

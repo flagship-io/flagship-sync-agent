@@ -197,8 +197,8 @@ func TestGetConfigFromEnv(t *testing.T) {
 		messageError(t, "flagshipConfig.PollingInterval", pollingInterval, flagshipConfig.PollingInterval)
 	}
 
-	if flagshipConfig.BucketingDirectory != bucketingDirectory {
-		messageError(t, "flagshipConfig.BucketingDirectory", bucketingDirectory, flagshipConfig.BucketingDirectory)
+	if flagshipConfig.BucketingPath != bucketingDirectory {
+		messageError(t, "flagshipConfig.BucketingPath", bucketingDirectory, flagshipConfig.BucketingPath)
 	}
 }
 
