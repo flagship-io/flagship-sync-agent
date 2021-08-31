@@ -9,8 +9,6 @@ RUN go mod download
 # Copy the code into the container
 COPY . .
 
-RUN ls -ah
-
 # Build the application
 RUN go build -o app .
 
