@@ -17,6 +17,7 @@ type BucketingPolling struct {
 	FlagshipConfig *FlagshipConfig
 	HttpClient     *http.Client
 	BaseUrl        string
+	lastModified   string
 }
 
 func (bucketingPolling *BucketingPolling) New(flagshipConfig *FlagshipConfig, httpClient *http.Client) *BucketingPolling {
@@ -75,10 +76,28 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 	}
 
 	bucketingApiUrl := fmt.Sprintf(BucketingApiUrl, bucketingPolling.FlagshipConfig.EnvId)
-	response, err := bucketingPolling.HttpClient.Get(bucketingApiUrl)
+
+	req, err := http.NewRequest("GET", bucketingApiUrl, nil)
 
 	if err != nil {
 		return err
+	}
+
+	if bucketingPolling.lastModified != "" {
+		req.Header = http.Header{
+			"if-modified-since": []string{bucketingPolling.lastModified},
+		}
+	}
+
+	response, err := bucketingPolling.HttpClient.Do(req)
+
+	if err != nil {
+		return err
+	}
+
+	lastModified := response.Header.Get("last-modified")
+	if lastModified != "" {
+		bucketingPolling.lastModified = lastModified
 	}
 
 	defer func(Body io.ReadCloser) {
@@ -98,7 +117,9 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 		return err
 	}
 
-	err = bucketingPolling.writeBucketingFile(body)
+	if len(body) > 0 {
+		err = bucketingPolling.writeBucketingFile(body)
+	}
 
 	if err != nil {
 		return err
