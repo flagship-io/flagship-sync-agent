@@ -1,0 +1,6 @@
+codecov:
+  token: 096d3378-eeb2-4970-b921-cb308aef09b6
+  
+# See https://docs.codecov.io/docs/ignoring-paths
+ignore:
+  - "/lib"
