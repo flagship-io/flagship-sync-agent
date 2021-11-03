@@ -28,8 +28,6 @@ jobs:
       - name: Run coverage
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./lib
       
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          token: 096d3378-eeb2-4970-b921-cb308aef09b6
-          file: ./coverage.txt
+      - run:
+          name: Upload coverage to Codecov
+          command: bash <(curl -s https://codecov.io/bash -t <096d3378-eeb2-4970-b921-cb308aef09b6>)
