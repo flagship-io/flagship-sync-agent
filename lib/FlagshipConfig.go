@@ -142,11 +142,11 @@ func (flagshipConfig *FlagshipConfig) GetConfig() (*FlagshipConfig, error) {
 			return flagshipConfig, err
 		}
 		return flagshipConfig, nil
-	} else {
-		flagshipConfig, err := flagshipConfig.getConfigFromEnv()
-		if err != nil {
-			return flagshipConfig, err
-		}
-		return flagshipConfig, nil
 	}
+	flagshipConfig, err := flagshipConfig.getConfigFromEnv()
+	if err != nil {
+		return flagshipConfig, err
+	}
+	return flagshipConfig, nil
+
 }
