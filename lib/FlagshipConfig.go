@@ -1,114 +1,78 @@
 package lib
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 )
 
 const (
-	FlagshipConfigFile         = "FLAGSHIP_CONFIG_FILE"
-	FlagshipEnvId              = "FLAGSHIP_ENV_ID"
-	FlagshipPollingInterval    = "FLAGSHIP_POLLING_INTERVAL"
-	FlagshipBucketingDirectory = "FLAGSHIP_BUCKETING_DIRECTORY"
-	FlagshipEnvIdErrorMessage  = "argument envId is required"
-	BucketingDirectoryError    = "environment variable bucketingPath is empty or not set, default value will be used"
-	FlagshipConfigEnvIdError   = "flagshipConfig file envId field is required"
+	FS_ENV_ID                 = "FS_ENV_ID"
+	FS_POLLING_INTERVAL       = "FS_POLLING_INTERVAL"
+	FS_BUCKETING_DIRECTORY    = "FS_BUCKETING_DIRECTORY"
+	FS_PORT                   = "FS_PORT"
+	FS_ADDRESS                = "FS_ADDRESS"
+	FlagshipEnvIdErrorMessage = "argument envId is required"
+	BucketingDirectoryError   = "environment variable bucketingPath is empty or not set, default value will be used"
+	DEFAULT_PORT              = 8080
+	DEFAULT_ADDRESS           = "0.0.0.0"
 )
 
 type FlagshipConfig struct {
 	EnvId           string `json:"envId"`
 	PollingInterval int    `json:"pollingInterval"`
 	BucketingPath   string `json:"bucketingPath"`
+	Port            int    `json:"port"`
+	Address         string `json:"address"`
 }
 
-func (flagshipConfig *FlagshipConfig) New() *FlagshipConfig {
+func (flagshipConfig *FlagshipConfig) New() (*FlagshipConfig, error) {
 
-	flagshipConfigFile := flag.String("config", "", "flagship ConfigFile")
-	flagshipConfigFileShort := flag.String("c", "", "flagshipConfigFile short argument")
 	envId := flag.String("envId", "", "environment Id")
 
+	port := flag.Int("port", DEFAULT_PORT, "Http endpoint port. Default: 8080")
+	address := flag.String("address", "0.0.0.0", "Http endpoint address. Default: 0.0.0.0")
+
 	pollingInterval := flag.Int("pollingInterval", -1, "pollingInterval")
-	pollingIntervalShort := flag.Int("p", -1, "pollingInterval short argument")
 
 	bucketingDirectory := flag.String("bucketingPath", "", "bucketing Directory path")
-	bucketingDirectoryShort := flag.String("b", "", "bucketing Directory path short argument")
 
 	flag.Parse()
 
-	if *flagshipConfigFile != "" {
-		_ = os.Setenv(FlagshipConfigFile, *flagshipConfigFile)
-	} else if *flagshipConfigFileShort != "" {
-		_ = os.Setenv(FlagshipConfigFile, *flagshipConfigFileShort)
+	if *envId != "" {
+		_ = os.Setenv(FS_ENV_ID, *envId)
 	}
 
-	if *envId != "" {
-		_ = os.Setenv(FlagshipEnvId, *envId)
+	if *port != DEFAULT_PORT {
+		_ = os.Setenv(FS_PORT, strconv.Itoa(*port))
+	}
+
+	if *address != DEFAULT_ADDRESS {
+		_ = os.Setenv(FS_ADDRESS, *address)
 	}
 
 	if *pollingInterval > -1 {
-		_ = os.Setenv(FlagshipPollingInterval, strconv.Itoa(*pollingInterval))
-	} else if *pollingIntervalShort > -1 {
-		_ = os.Setenv(FlagshipPollingInterval, strconv.Itoa(*pollingIntervalShort))
+		_ = os.Setenv(FS_POLLING_INTERVAL, strconv.Itoa(*pollingInterval))
 	}
 
 	if *bucketingDirectory != "" {
-		_ = os.Setenv(FlagshipBucketingDirectory, *bucketingDirectory)
-	} else if *bucketingDirectoryShort != "" {
-		_ = os.Setenv(FlagshipBucketingDirectory, *bucketingDirectoryShort)
+		_ = os.Setenv(FS_BUCKETING_DIRECTORY, *bucketingDirectory)
 	}
-	return flagshipConfig
+
+	return flagshipConfig.GetConfig()
 }
 
-func (flagshipConfig *FlagshipConfig) getFlagshipConfigFile(flagshipConfigPath string) (*FlagshipConfig, error) {
+func (flagshipConfig *FlagshipConfig) GetConfig() (*FlagshipConfig, error) {
 
-	file, err := os.Open(flagshipConfigPath)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}(file)
-
-	fileBytes, err := io.ReadAll(file)
-
-	if err != nil {
-		return nil, err
-	}
-
-	flagshipConfig.PollingInterval = 2000
-
-	err = json.Unmarshal(fileBytes, &flagshipConfig)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if flagshipConfig.EnvId == "" {
-		return nil, fmt.Errorf(FlagshipConfigEnvIdError)
-	}
-
-	return flagshipConfig, nil
-}
-
-func (flagshipConfig *FlagshipConfig) getConfigFromEnv() (*FlagshipConfig, error) {
-
-	envId := os.Getenv(FlagshipEnvId)
+	envId := os.Getenv(FS_ENV_ID)
 	if envId == "" {
 		return nil, fmt.Errorf(FlagshipEnvIdErrorMessage)
 	}
 
 	flagshipConfig.EnvId = envId
 
-	bucketingDirectory := os.Getenv(FlagshipBucketingDirectory)
+	bucketingDirectory := os.Getenv(FS_BUCKETING_DIRECTORY)
 
 	if bucketingDirectory == "" {
 		fmt.Println(BucketingDirectoryError)
@@ -116,7 +80,7 @@ func (flagshipConfig *FlagshipConfig) getConfigFromEnv() (*FlagshipConfig, error
 
 	flagshipConfig.BucketingPath = bucketingDirectory
 
-	envPollingInterval := os.Getenv(FlagshipPollingInterval)
+	envPollingInterval := os.Getenv(FS_POLLING_INTERVAL)
 
 	if envPollingInterval == "" {
 		flagshipConfig.PollingInterval = 2000
@@ -130,23 +94,25 @@ func (flagshipConfig *FlagshipConfig) getConfigFromEnv() (*FlagshipConfig, error
 		flagshipConfig.PollingInterval = pollingInterval
 	}
 
-	return flagshipConfig, nil
-}
-
-func (flagshipConfig *FlagshipConfig) GetConfig() (*FlagshipConfig, error) {
-
-	flagshipConfigPath := os.Getenv(FlagshipConfigFile)
-	if flagshipConfigPath != "" {
-		flagshipConfig, err := flagshipConfig.getFlagshipConfigFile(flagshipConfigPath)
+	envPort := os.Getenv(FS_PORT)
+	if envPort == "" {
+		flagshipConfig.Port = DEFAULT_PORT
+		fmt.Println("argument port is empty or not set, default value will be used 8080")
+	} else {
+		port, err := strconv.Atoi(envPort)
 		if err != nil {
-			return flagshipConfig, err
+			port = DEFAULT_PORT
+			fmt.Printf("argument port is not an int, default value will be used 8080")
 		}
-		return flagshipConfig, nil
+		flagshipConfig.Port = port
 	}
-	flagshipConfig, err := flagshipConfig.getConfigFromEnv()
-	if err != nil {
-		return flagshipConfig, err
-	}
-	return flagshipConfig, nil
 
+	address := os.Getenv(FS_ADDRESS)
+	if address == "" {
+		address = DEFAULT_ADDRESS
+		fmt.Println("argument address is empty or not set, default value will be used 0.0.0.0")
+	}
+	flagshipConfig.Address = address
+
+	return flagshipConfig, nil
 }
