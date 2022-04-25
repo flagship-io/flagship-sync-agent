@@ -1,10 +1,13 @@
 package main
 
 import (
+	"flagship-io/flagship-sync-agent/controller"
 	"flagship-io/flagship-sync-agent/lib"
 	"fmt"
 	"net/http"
-	"time"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -13,27 +16,24 @@ func main() {
 	var BucketingPolling lib.BucketingPolling
 	var HttpClient http.Client
 
-	flagshipConfig.New()
+	_, err := flagshipConfig.New()
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	BucketingPolling.New(&flagshipConfig, &HttpClient)
 
-	for {
-		fmt.Println("Polling start")
+	go BucketingPolling.StartPolling()
 
-		err := BucketingPolling.Polling()
+	bucketingController := controller.BucketingController{}
 
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println("Polling success")
-		}
+	gin.SetMode(gin.DebugMode)
+	server := gin.Default()
 
-		fmt.Println("Polling end")
+	server.GET("/bucketing", bucketingController.GetBucketing)
 
-		if flagshipConfig.PollingInterval == 0 {
-			break
-		}
-		duration := time.Duration(flagshipConfig.PollingInterval) * time.Millisecond
-		time.Sleep(duration)
-	}
+	server.Run(flagshipConfig.Address + ":" + strconv.Itoa(flagshipConfig.Port))
+
 }

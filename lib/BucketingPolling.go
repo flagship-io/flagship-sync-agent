@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -12,6 +13,8 @@ const (
 )
 
 var osCreate = os.Create
+
+var BucktingFile []byte
 
 type BucketingPolling struct {
 	FlagshipConfig *FlagshipConfig
@@ -40,7 +43,7 @@ func (bucketingPolling *BucketingPolling) writeBucketingFile(buffer []byte) erro
 	}
 
 	if _, err := os.Stat(bucketingDirectory); os.IsNotExist(err) {
-		err := os.Mkdir(bucketingDirectory, os.ModeDir)
+		err := os.Mkdir(bucketingDirectory, os.ModePerm)
 		if err != nil {
 			return fmt.Errorf("mkdir directory %s error", bucketingPolling.FlagshipConfig.BucketingPath)
 		}
@@ -69,11 +72,7 @@ func (bucketingPolling *BucketingPolling) writeBucketingFile(buffer []byte) erro
 
 func (bucketingPolling *BucketingPolling) Polling() error {
 
-	_, err := bucketingPolling.FlagshipConfig.GetConfig()
-
-	if err != nil {
-		return err
-	}
+	bucketingPolling.FlagshipConfig.GetConfig()
 
 	bucketingApiUrl := fmt.Sprintf(BucketingApiUrl, bucketingPolling.FlagshipConfig.EnvId)
 
@@ -118,6 +117,7 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 	}
 
 	if len(body) > 0 {
+		BucktingFile = body
 		err = bucketingPolling.writeBucketingFile(body)
 	}
 
@@ -125,4 +125,26 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 		return err
 	}
 	return nil
+}
+
+func (bucketingPolling *BucketingPolling) StartPolling() {
+	for {
+		fmt.Println("Polling start")
+
+		err := bucketingPolling.Polling()
+
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println("Polling success")
+		}
+
+		fmt.Println("Polling end")
+
+		if bucketingPolling.FlagshipConfig.PollingInterval == 0 {
+			break
+		}
+		duration := time.Duration(bucketingPolling.FlagshipConfig.PollingInterval) * time.Millisecond
+		time.Sleep(duration)
+	}
 }

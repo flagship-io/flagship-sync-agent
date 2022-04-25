@@ -52,8 +52,8 @@ func TestBucketingPolling_Polling(t *testing.T) {
 
 	envId := "env_id"
 	pollingInterval := 0
-	_ = os.Setenv(FlagshipEnvId, envId)
-	_ = os.Setenv(FlagshipPollingInterval, strconv.Itoa(pollingInterval))
+	_ = os.Setenv(FS_ENV_ID, envId)
+	_ = os.Setenv(FS_POLLING_INTERVAL, strconv.Itoa(pollingInterval))
 
 	osCreate = func(name string) (*os.File, error) {
 		//Test default bucketing File
@@ -91,6 +91,8 @@ func TestBucketingPolling_Polling(t *testing.T) {
 
 	var bucketingPolling BucketingPolling
 
+	flagshipConfig.New()
+
 	bucketingPolling.New(&flagshipConfig, client)
 	err := bucketingPolling.Polling()
 	if err != nil {
@@ -104,10 +106,10 @@ func TestBucketingPolling_Polling2(t *testing.T) {
 	envId := "env_id"
 	pollingInterval := 0
 	BucketingDirectory := "myDirector"
-	_ = os.Setenv(FlagshipEnvId, envId)
-	_ = os.Setenv(FlagshipPollingInterval, strconv.Itoa(pollingInterval))
+	_ = os.Setenv(FS_ENV_ID, envId)
+	_ = os.Setenv(FS_POLLING_INTERVAL, strconv.Itoa(pollingInterval))
 
-	_ = os.Setenv(FlagshipBucketingDirectory, BucketingDirectory)
+	_ = os.Setenv(FS_BUCKETING_DIRECTORY, BucketingDirectory)
 	osCreate = func(name string) (*os.File, error) {
 		//Test default bucketing File
 		if name != BucketingDirectory+"/bucketing.json" {
@@ -172,9 +174,9 @@ func TestBucketingPolling_Polling_http_400(t *testing.T) {
 	envId := "env_id"
 	pollingInterval := 0
 	BucketingDirectory := "myDirector"
-	_ = os.Setenv(FlagshipEnvId, envId)
-	_ = os.Setenv(FlagshipPollingInterval, strconv.Itoa(pollingInterval))
-	_ = os.Setenv(FlagshipBucketingDirectory, BucketingDirectory)
+	_ = os.Setenv(FS_ENV_ID, envId)
+	_ = os.Setenv(FS_POLLING_INTERVAL, strconv.Itoa(pollingInterval))
+	_ = os.Setenv(FS_BUCKETING_DIRECTORY, BucketingDirectory)
 
 	httpBody := `{"message": "Forbidden"}`
 	client := NewTestClient(func(req *http.Request) *http.Response {
