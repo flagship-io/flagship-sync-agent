@@ -14,7 +14,7 @@ func setupRouter(bucketingPolling *lib.BucketingPolling) *gin.Engine {
 	bucketingController := controller.BucketingController{
 		BucketingPolling: bucketingPolling,
 	}
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
 	router.GET("/bucketing", bucketingController.GetBucketing)
