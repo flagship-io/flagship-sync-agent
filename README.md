@@ -20,6 +20,14 @@ go build -o app .
 
 ```
 
+## Test
+
+```bash
+
+go test  -coverprofile=coverage.txt -covermode=atomic ./... && go tool cover -html=coverage.txt -o cover.html
+
+```
+
 ## Run
 
 ```bash
