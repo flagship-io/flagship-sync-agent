@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"strconv"
+	"reflect"
 	"testing"
 )
 
@@ -31,11 +30,11 @@ func TestBucketingPolling_New(t *testing.T) {
 }
 
 // RoundTripFunc .
-type RoundTripFunc func(req *http.Request) *http.Response
+type RoundTripFunc func(req *http.Request) (*http.Response, error)
 
 // RoundTrip .
 func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return f(req), nil
+	return f(req)
 }
 
 //NewTestClient returns *http.Client with Transport replaced to avoid making real calls
@@ -47,102 +46,42 @@ func NewTestClient(fn RoundTripFunc) *http.Client {
 
 func TestBucketingPolling_Polling(t *testing.T) {
 
-	oldArgs := os.Args
-	defer resetForEachTest(oldArgs)
-
 	envId := "env_id"
 	pollingInterval := 0
-	_ = os.Setenv(FS_ENV_ID, envId)
-	_ = os.Setenv(FS_POLLING_INTERVAL, strconv.Itoa(pollingInterval))
 
-	osCreate = func(name string) (*os.File, error) {
-		//Test default bucketing File
-		if name != "flagship/bucketing.json" {
-			t.FailNow()
-		}
-		f, _ := os.CreateTemp("", "example")
-		defer func(name string) {
-			_ = os.Remove(name)
-		}(f.Name())
-		return f, nil
-	}
+	httpBodyString := `{"campaigns":[]}`
+	lastModified := []string{"2022-04-26 11:54:00"}
 
-	defer func() {
-		osCreate = os.Create
-	}()
+	count := 1
 
-	client := NewTestClient(func(req *http.Request) *http.Response {
+	client := NewTestClient(func(req *http.Request) (*http.Response, error) {
 		// Test request parameters
 		bucketingApiUrl := fmt.Sprintf(BucketingApiUrl, envId)
 		fmt.Println(req.URL.String())
 		if req.URL.String() != bucketingApiUrl {
 			messageError(t, "bucketingApiUrl", bucketingApiUrl, req.URL.String())
 		}
+
+		if count > 1 && reflect.DeepEqual(req.Header[LAST_MODIFIED], lastModified) {
+			messageError(t, "LAST_MODIFIED", lastModified, req.Header[LAST_MODIFIED])
+		}
+
 		return &http.Response{
 			StatusCode: 200,
 			// Send response to be tested
-			Body: ioutil.NopCloser(bytes.NewBufferString(`{}`)),
+			Body: ioutil.NopCloser(bytes.NewBufferString(httpBodyString)),
 			// Must be set to non-nil value or it panics
-			Header: make(http.Header),
-		}
+			Header: http.Header{
+				LAST_MODIFIED: lastModified,
+			},
+		}, nil
 	})
 
 	var flagshipConfig FlagshipConfig
 
-	var bucketingPolling BucketingPolling
+	flagshipConfig.EnvId = envId
 
-	flagshipConfig.New()
-
-	bucketingPolling.New(&flagshipConfig, client)
-	err := bucketingPolling.Polling()
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestBucketingPolling_Polling2(t *testing.T) {
-	oldArgs := os.Args
-	defer resetForEachTest(oldArgs)
-	envId := "env_id"
-	pollingInterval := 0
-	BucketingDirectory := "myDirector"
-	_ = os.Setenv(FS_ENV_ID, envId)
-	_ = os.Setenv(FS_POLLING_INTERVAL, strconv.Itoa(pollingInterval))
-
-	_ = os.Setenv(FS_BUCKETING_DIRECTORY, BucketingDirectory)
-	osCreate = func(name string) (*os.File, error) {
-		//Test default bucketing File
-		if name != BucketingDirectory+"/bucketing.json" {
-			t.FailNow()
-		}
-		f, _ := os.CreateTemp("", "example")
-		defer func(name string) {
-			_ = os.Remove(name)
-		}(f.Name())
-		return f, nil
-	}
-
-	defer func() {
-		osCreate = os.Create
-	}()
-
-	client := NewTestClient(func(req *http.Request) *http.Response {
-		// Test request parameters
-		bucketingApiUrl := fmt.Sprintf(BucketingApiUrl, envId)
-		fmt.Println(req.URL.String())
-		if req.URL.String() != bucketingApiUrl {
-			messageError(t, "bucketingApiUrl", bucketingApiUrl, req.URL.String())
-		}
-		return &http.Response{
-			StatusCode: 200,
-			// Send response to be tested
-			Body: ioutil.NopCloser(bytes.NewBufferString(`{}`)),
-			// Must be set to non-nil value or it panics
-			Header: make(http.Header),
-		}
-	})
-
-	var flagshipConfig FlagshipConfig
+	flagshipConfig.PollingInterval = pollingInterval
 
 	var bucketingPolling BucketingPolling
 
@@ -151,35 +90,65 @@ func TestBucketingPolling_Polling2(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	bucketingFileString := string(BucktingFile)
+
+	if bucketingFileString != httpBodyString {
+		messageError(t, "BucktingFile", httpBodyString, bucketingFileString)
+	}
+	if !reflect.DeepEqual(lastModified, bucketingPolling.lastModified) {
+		messageError(t, "BucktingFile", lastModified, bucketingPolling.lastModified)
+	}
+
+	count++
+
+	err = bucketingPolling.Polling()
+	if err != nil {
+		t.Error(err)
+	}
+
+	bucketingFileString = string(BucktingFile)
+
+	if bucketingFileString != httpBodyString {
+		messageError(t, "BucktingFile", httpBodyString, bucketingFileString)
+	}
+	if !reflect.DeepEqual(lastModified, bucketingPolling.lastModified) {
+		messageError(t, "BucktingFile", lastModified, bucketingPolling.lastModified)
+	}
 }
 
-func TestBucketingPolling_Error(t *testing.T) {
+func TestBucketingPolling_Polling_Error(t *testing.T) {
 
-	oldArgs := os.Args
-	defer resetForEachTest(oldArgs)
+	envId := "env_id"
+	pollingInterval := 0
+
+	netError := fmt.Errorf("net error")
+
+	client := NewTestClient(func(req *http.Request) (*http.Response, error) {
+
+		return nil, netError
+	})
+
 	var flagshipConfig FlagshipConfig
 
+	flagshipConfig.EnvId = envId
+	flagshipConfig.PollingInterval = pollingInterval
+
 	var bucketingPolling BucketingPolling
-	var client http.Client
-	bucketingPolling.New(&flagshipConfig, &client)
+
+	bucketingPolling.New(&flagshipConfig, client)
 	err := bucketingPolling.Polling()
 	if err == nil {
-		t.Error(err)
+		t.FailNow()
 	}
 }
 
 func TestBucketingPolling_Polling_http_400(t *testing.T) {
-	oldArgs := os.Args
-	defer resetForEachTest(oldArgs)
 	envId := "env_id"
 	pollingInterval := 0
-	BucketingDirectory := "myDirector"
-	_ = os.Setenv(FS_ENV_ID, envId)
-	_ = os.Setenv(FS_POLLING_INTERVAL, strconv.Itoa(pollingInterval))
-	_ = os.Setenv(FS_BUCKETING_DIRECTORY, BucketingDirectory)
 
 	httpBody := `{"message": "Forbidden"}`
-	client := NewTestClient(func(req *http.Request) *http.Response {
+	client := NewTestClient(func(req *http.Request) (*http.Response, error) {
 		// Test request parameters
 		bucketingApiUrl := fmt.Sprintf(BucketingApiUrl, envId)
 		fmt.Println(req.URL.String())
@@ -192,19 +161,77 @@ func TestBucketingPolling_Polling_http_400(t *testing.T) {
 			Body: ioutil.NopCloser(bytes.NewBufferString(httpBody)),
 			// Must be set to non-nil value or it panics
 			Header: make(http.Header),
-		}
+		}, nil
 	})
 
 	var flagshipConfig FlagshipConfig
 
+	flagshipConfig.EnvId = envId
+	flagshipConfig.PollingInterval = pollingInterval
+
 	var bucketingPolling BucketingPolling
 
 	bucketingPolling.New(&flagshipConfig, client)
+
 	err := bucketingPolling.Polling()
 	if err == nil {
 		t.FailNow()
 	}
 	if err.Error() != "{"+httpBody+"}" {
 		t.Error(err)
+	}
+}
+
+func TestBucketingPolling_StartPolling(t *testing.T) {
+
+	envId := "env_id"
+	pollingInterval := 0
+
+	httpBodyString := `{"campaigns":[]}`
+	lastModified := []string{"2022-04-26 11:54:00"}
+
+	count := 1
+
+	client := NewTestClient(func(req *http.Request) (*http.Response, error) {
+		// Test request parameters
+		bucketingApiUrl := fmt.Sprintf(BucketingApiUrl, envId)
+		fmt.Println(req.URL.String())
+		if req.URL.String() != bucketingApiUrl {
+			messageError(t, "bucketingApiUrl", bucketingApiUrl, req.URL.String())
+		}
+
+		if count > 1 && reflect.DeepEqual(req.Header[LAST_MODIFIED], lastModified) {
+			messageError(t, "LAST_MODIFIED", lastModified, req.Header[LAST_MODIFIED])
+		}
+
+		return &http.Response{
+			StatusCode: 200,
+			// Send response to be tested
+			Body: ioutil.NopCloser(bytes.NewBufferString(httpBodyString)),
+			// Must be set to non-nil value or it panics
+			Header: http.Header{
+				LAST_MODIFIED: lastModified,
+			},
+		}, nil
+	})
+
+	var flagshipConfig FlagshipConfig
+
+	flagshipConfig.EnvId = envId
+
+	flagshipConfig.PollingInterval = pollingInterval
+
+	var bucketingPolling BucketingPolling
+
+	bucketingPolling.New(&flagshipConfig, client)
+	bucketingPolling.StartPolling()
+
+	bucketingFileString := string(BucktingFile)
+
+	if bucketingFileString != httpBodyString {
+		messageError(t, "BucktingFile", httpBodyString, bucketingFileString)
+	}
+	if !reflect.DeepEqual(lastModified, bucketingPolling.lastModified) {
+		messageError(t, "BucktingFile", lastModified, bucketingPolling.lastModified)
 	}
 }

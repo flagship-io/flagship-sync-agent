@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 )
 
 const (
-	BucketingApiUrl = "https://cdn.flagship.io/%s/bucketing.json"
+	BucketingApiUrl   = "https://cdn.flagship.io/%s/bucketing.json"
+	IF_MODIFIED_SINCE = "if-modified-since"
+	LAST_MODIFIED     = "last-modified"
 )
-
-var osCreate = os.Create
 
 var BucktingFile []byte
 
@@ -20,7 +19,7 @@ type BucketingPolling struct {
 	FlagshipConfig *FlagshipConfig
 	HttpClient     *http.Client
 	BaseUrl        string
-	lastModified   string
+	lastModified   []string
 }
 
 func (bucketingPolling *BucketingPolling) New(flagshipConfig *FlagshipConfig, httpClient *http.Client) *BucketingPolling {
@@ -29,50 +28,7 @@ func (bucketingPolling *BucketingPolling) New(flagshipConfig *FlagshipConfig, ht
 	return bucketingPolling
 }
 
-func (bucketingPolling *BucketingPolling) writeBucketingFile(buffer []byte) error {
-
-	bucketingDirectory := "flagship"
-	if bucketingPolling.FlagshipConfig.BucketingPath != "" {
-		bucketingDirectory = bucketingPolling.FlagshipConfig.BucketingPath
-	}
-
-	filePath := bucketingDirectory + "/bucketing.json"
-
-	if len(buffer) == 0 {
-		return fmt.Errorf("response content null")
-	}
-
-	if _, err := os.Stat(bucketingDirectory); os.IsNotExist(err) {
-		err := os.Mkdir(bucketingDirectory, os.ModePerm)
-		if err != nil {
-			return fmt.Errorf("mkdir directory %s error", bucketingPolling.FlagshipConfig.BucketingPath)
-		}
-	}
-
-	bucketingFile, err := osCreate(filePath)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		err := bucketingFile.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}()
-
-	_, err = bucketingFile.Write(buffer)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (bucketingPolling *BucketingPolling) Polling() error {
-
-	bucketingPolling.FlagshipConfig.GetConfig()
 
 	bucketingApiUrl := fmt.Sprintf(BucketingApiUrl, bucketingPolling.FlagshipConfig.EnvId)
 
@@ -82,9 +38,9 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 		return err
 	}
 
-	if bucketingPolling.lastModified != "" {
+	if len(bucketingPolling.lastModified) > 0 {
 		req.Header = http.Header{
-			"if-modified-since": []string{bucketingPolling.lastModified},
+			IF_MODIFIED_SINCE: bucketingPolling.lastModified,
 		}
 	}
 
@@ -94,8 +50,8 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 		return err
 	}
 
-	lastModified := response.Header.Get("last-modified")
-	if lastModified != "" {
+	lastModified := response.Header[LAST_MODIFIED]
+	if len(lastModified) > 0 {
 		bucketingPolling.lastModified = lastModified
 	}
 
@@ -118,12 +74,8 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 
 	if len(body) > 0 {
 		BucktingFile = body
-		err = bucketingPolling.writeBucketingFile(body)
 	}
 
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
