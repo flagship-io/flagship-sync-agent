@@ -32,15 +32,23 @@ go test  -coverprofile=coverage.txt -covermode=atomic ./... && go tool cover -ht
 
 ```bash
 
-  $ ./app --envId=envId --pollingInterval=2000 --bucketingPath=customDirectory
+  $ ./app --envId=envId --pollingInterval=2000 --port=3000 --address=0.0.0.0
 
 ```
 
 arguments:
 
-| argument        | type   | description                                                                                                                                                   |
-| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| envId           | string | Environment id provided by Flagship.                                                                                                                          |
-| pollingInterval | int    | Define time interval between two bucketing updates. Default is 2000ms.                                                                                        |
-| bucketingPath   | string | Directory path where bucketing file will be saved. <br/> Default path is : - `./flagship` for flagship-sync-agent                                             |
-| config          | string | flagship configuration file path. **See [flagship configuration file](https://developers.flagship.io/docs/sdk/php/v2.0#flagship-configuration-file) section** |
+| argument        | type   | description                                                            |
+| --------------- | ------ | ---------------------------------------------------------------------- |
+| envId           | string | Environment id provided by Flagship.                                   |
+| pollingInterval | int    | Define time interval between two bucketing updates. Default is 2000ms. |
+| Port            | int    | Endpoint listen port. Default is 8080                                  |
+| address         | string | Address where the endpoint is served. Default is 0.0.0.0               |
+
+API docs
+
+| route      | Description                 |
+| ---------- | --------------------------- |
+| /bucketing | Get the Json bucketing file |
+
+z
