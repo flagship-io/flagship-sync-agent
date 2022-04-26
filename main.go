@@ -10,6 +10,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func setupRouter(bucketingPolling *lib.BucketingPolling) *gin.Engine {
+	bucketingController := controller.BucketingController{
+		BucketingPolling: bucketingPolling,
+	}
+	gin.SetMode(gin.DebugMode)
+	router := gin.Default()
+
+	router.GET("/bucketing", bucketingController.GetBucketing)
+
+	return router
+}
+
 func main() {
 
 	var flagshipConfig lib.FlagshipConfig
@@ -27,12 +39,7 @@ func main() {
 
 	go BucketingPolling.StartPolling()
 
-	bucketingController := controller.BucketingController{}
-
-	gin.SetMode(gin.DebugMode)
-	server := gin.Default()
-
-	server.GET("/bucketing", bucketingController.GetBucketing)
+	server := setupRouter(&BucketingPolling)
 
 	server.Run(flagshipConfig.Address + ":" + strconv.Itoa(flagshipConfig.Port))
 

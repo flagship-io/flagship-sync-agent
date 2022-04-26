@@ -8,8 +8,9 @@ import (
 )
 
 type BucketingController struct {
+	BucketingPolling *lib.BucketingPolling
 }
 
 func (controller *BucketingController) GetBucketing(c *gin.Context) {
-	c.Data(http.StatusOK, gin.MIMEJSON, lib.BucktingFile)
+	c.Data(http.StatusOK, gin.MIMEJSON, controller.BucketingPolling.BucktingFile)
 }

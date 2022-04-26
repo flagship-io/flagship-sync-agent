@@ -13,13 +13,12 @@ const (
 	LAST_MODIFIED     = "last-modified"
 )
 
-var BucktingFile []byte
-
 type BucketingPolling struct {
 	FlagshipConfig *FlagshipConfig
 	HttpClient     *http.Client
 	BaseUrl        string
 	lastModified   []string
+	BucktingFile   []byte
 }
 
 func (bucketingPolling *BucketingPolling) New(flagshipConfig *FlagshipConfig, httpClient *http.Client) *BucketingPolling {
@@ -73,7 +72,7 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 	}
 
 	if len(body) > 0 {
-		BucktingFile = body
+		bucketingPolling.BucktingFile = body
 	}
 
 	return nil

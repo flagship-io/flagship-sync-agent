@@ -29,15 +29,12 @@ func TestBucketingPolling_New(t *testing.T) {
 	}
 }
 
-// RoundTripFunc .
 type RoundTripFunc func(req *http.Request) (*http.Response, error)
 
-// RoundTrip .
 func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
 }
 
-//NewTestClient returns *http.Client with Transport replaced to avoid making real calls
 func NewTestClient(fn RoundTripFunc) *http.Client {
 	return &http.Client{
 		Transport: RoundTripFunc(fn),
@@ -91,7 +88,7 @@ func TestBucketingPolling_Polling(t *testing.T) {
 		t.Error(err)
 	}
 
-	bucketingFileString := string(BucktingFile)
+	bucketingFileString := string(bucketingPolling.BucktingFile)
 
 	if bucketingFileString != httpBodyString {
 		messageError(t, "BucktingFile", httpBodyString, bucketingFileString)
@@ -107,7 +104,7 @@ func TestBucketingPolling_Polling(t *testing.T) {
 		t.Error(err)
 	}
 
-	bucketingFileString = string(BucktingFile)
+	bucketingFileString = string(bucketingPolling.BucktingFile)
 
 	if bucketingFileString != httpBodyString {
 		messageError(t, "BucktingFile", httpBodyString, bucketingFileString)
@@ -226,7 +223,7 @@ func TestBucketingPolling_StartPolling(t *testing.T) {
 	bucketingPolling.New(&flagshipConfig, client)
 	bucketingPolling.StartPolling()
 
-	bucketingFileString := string(BucktingFile)
+	bucketingFileString := string(bucketingPolling.BucktingFile)
 
 	if bucketingFileString != httpBodyString {
 		messageError(t, "BucktingFile", httpBodyString, bucketingFileString)
