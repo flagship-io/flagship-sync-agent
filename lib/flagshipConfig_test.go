@@ -39,7 +39,7 @@ func TestNewDefault(t *testing.T) {
 	//test FLAGSHIP_ENV_ID
 	envId := "envId_id"
 	os.Args = []string{"cmd", "-envId=" + envId}
-	flagshipConfig.New()
+	_, _ = flagshipConfig.New()
 
 	if flagshipConfig.EnvId != envId {
 		t.Fail()
@@ -68,7 +68,7 @@ func TestNew(t *testing.T) {
 	port := 3001
 	address := "127.0.0.1"
 	os.Args = []string{"cmd", "-envId=" + envId, "-pollingInterval=" + strconv.Itoa(pollingInterval), "-port=" + strconv.Itoa(port), "-address=" + address}
-	flagshipConfig.New()
+	_, _ = flagshipConfig.New()
 
 	if flagshipConfig.EnvId != envId {
 		t.Fail()

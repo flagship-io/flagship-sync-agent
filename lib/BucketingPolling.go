@@ -49,7 +49,7 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 		return err
 	}
 
-	lastModified := response.Header[LAST_MODIFIED]
+	lastModified := response.Header[http.CanonicalHeaderKey(LAST_MODIFIED)]
 	if len(lastModified) > 0 {
 		bucketingPolling.lastModified = lastModified
 	}

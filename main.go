@@ -41,6 +41,9 @@ func main() {
 
 	server := setupRouter(&BucketingPolling)
 
-	server.Run(flagshipConfig.Address + ":" + strconv.Itoa(flagshipConfig.Port))
+	err = server.Run(flagshipConfig.Address + ":" + strconv.Itoa(flagshipConfig.Port))
 
+	if err != nil {
+		fmt.Println(err)
+	}
 }

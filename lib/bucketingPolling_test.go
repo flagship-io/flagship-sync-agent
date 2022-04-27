@@ -59,8 +59,8 @@ func TestBucketingPolling_Polling(t *testing.T) {
 			messageError(t, "bucketingApiUrl", bucketingApiUrl, req.URL.String())
 		}
 
-		if count > 1 && reflect.DeepEqual(req.Header[LAST_MODIFIED], lastModified) {
-			messageError(t, "LAST_MODIFIED", lastModified, req.Header[LAST_MODIFIED])
+		if count > 1 && reflect.DeepEqual(req.Header[http.CanonicalHeaderKey(LAST_MODIFIED)], lastModified) {
+			messageError(t, "LAST_MODIFIED", lastModified, req.Header[http.CanonicalHeaderKey(LAST_MODIFIED)])
 		}
 
 		return &http.Response{
@@ -197,8 +197,8 @@ func TestBucketingPolling_StartPolling(t *testing.T) {
 			messageError(t, "bucketingApiUrl", bucketingApiUrl, req.URL.String())
 		}
 
-		if count > 1 && reflect.DeepEqual(req.Header[LAST_MODIFIED], lastModified) {
-			messageError(t, "LAST_MODIFIED", lastModified, req.Header[LAST_MODIFIED])
+		if count > 1 && reflect.DeepEqual(req.Header[http.CanonicalHeaderKey(LAST_MODIFIED)], lastModified) {
+			messageError(t, "LAST_MODIFIED", lastModified, req.Header[http.CanonicalHeaderKey(LAST_MODIFIED)])
 		}
 
 		return &http.Response{
