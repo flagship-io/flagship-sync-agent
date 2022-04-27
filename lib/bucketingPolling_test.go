@@ -69,7 +69,7 @@ func TestBucketingPolling_Polling(t *testing.T) {
 			Body: ioutil.NopCloser(bytes.NewBufferString(httpBodyString)),
 			// Must be set to non-nil value or it panics
 			Header: http.Header{
-				LAST_MODIFIED: lastModified,
+				http.CanonicalHeaderKey(LAST_MODIFIED): lastModified,
 			},
 		}, nil
 	})
@@ -207,7 +207,7 @@ func TestBucketingPolling_StartPolling(t *testing.T) {
 			Body: ioutil.NopCloser(bytes.NewBufferString(httpBodyString)),
 			// Must be set to non-nil value or it panics
 			Header: http.Header{
-				LAST_MODIFIED: lastModified,
+				http.CanonicalHeaderKey(LAST_MODIFIED): lastModified,
 			},
 		}, nil
 	})
