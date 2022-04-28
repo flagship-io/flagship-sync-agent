@@ -12,5 +12,5 @@ type BucketingController struct {
 }
 
 func (controller *BucketingController) GetBucketing(c *gin.Context) {
-	c.Data(http.StatusOK, gin.MIMEJSON, controller.BucketingPolling.BucktingFile)
+	c.Data(http.StatusOK, gin.MIMEJSON, controller.BucketingPolling.BucketingFile)
 }

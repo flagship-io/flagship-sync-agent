@@ -88,7 +88,7 @@ func TestBucketingPolling_Polling(t *testing.T) {
 		t.Error(err)
 	}
 
-	bucketingFileString := string(bucketingPolling.BucktingFile)
+	bucketingFileString := string(bucketingPolling.BucketingFile)
 
 	if bucketingFileString != httpBodyString {
 		messageError(t, "BucktingFile", httpBodyString, bucketingFileString)
@@ -104,7 +104,7 @@ func TestBucketingPolling_Polling(t *testing.T) {
 		t.Error(err)
 	}
 
-	bucketingFileString = string(bucketingPolling.BucktingFile)
+	bucketingFileString = string(bucketingPolling.BucketingFile)
 
 	if bucketingFileString != httpBodyString {
 		messageError(t, "BucktingFile", httpBodyString, bucketingFileString)
@@ -223,7 +223,7 @@ func TestBucketingPolling_StartPolling(t *testing.T) {
 	bucketingPolling.New(&flagshipConfig, client)
 	bucketingPolling.StartPolling()
 
-	bucketingFileString := string(bucketingPolling.BucktingFile)
+	bucketingFileString := string(bucketingPolling.BucketingFile)
 
 	if bucketingFileString != httpBodyString {
 		messageError(t, "BucktingFile", httpBodyString, bucketingFileString)

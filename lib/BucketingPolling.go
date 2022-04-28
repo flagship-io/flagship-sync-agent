@@ -18,7 +18,7 @@ type BucketingPolling struct {
 	HttpClient     *http.Client
 	BaseUrl        string
 	lastModified   []string
-	BucktingFile   []byte
+	BucketingFile  []byte
 }
 
 func (bucketingPolling *BucketingPolling) New(flagshipConfig *FlagshipConfig, httpClient *http.Client) *BucketingPolling {
@@ -72,7 +72,7 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 	}
 
 	if len(body) > 0 {
-		bucketingPolling.BucktingFile = body
+		bucketingPolling.BucketingFile = body
 	}
 
 	return nil
