@@ -45,10 +45,27 @@ arguments:
 | Port            | int    | Endpoint listen port. Default is 8080                                  |
 | address         | string | Address where the endpoint is served. Default is 0.0.0.0               |
 
-API docs
+## Docker
+
+```bash
+
+docker pull flagshipio/sync-agent
+
+docker run -p 3000:8080 -e "FS_ENV_ID={YOUR_ENV_ID}" flagshipio/sync-agent
+
+```
+
+Environment variables:
+
+| argument            | type   | description                                                            |
+| ------------------- | ------ | ---------------------------------------------------------------------- |
+| FS_ENV_ID           | string | Environment id provided by Flagship.                                   |
+| FS_POLLING_INTERVAL | int    | Define time interval between two bucketing updates. Default is 2000ms. |
+| FS_PORT             | int    | Endpoint listen port. Default is 8080                                  |
+| FS_ADDRESS          | string | Address where the endpoint is served. Default is 0.0.0.0               |
+
+## API docs
 
 | route      | Description                 |
 | ---------- | --------------------------- |
 | /bucketing | Get the Json bucketing file |
-
-z
