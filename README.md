@@ -51,7 +51,7 @@ arguments:
 
 docker pull flagshipio/sync-agent
 
-docker run -p 3000:8080 -e "FS_ENV_ID={YOUR_ENV_ID}" flagshipio/sync-agent
+env FS_ENV_ID="YOUR_ENV_ID" docker run -p 3000:8080 -e FS_ENV_ID flagshipio/sync-agent
 
 ```
 
