@@ -1,8 +1,8 @@
 name: deploy_ci
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
 
 jobs:
   build:
@@ -22,14 +22,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Build and push Docker image tag version
-        uses: docker/build-push-action@v2.3.0
-        with:
-          push: true
-          tags: flagshipio/sync-agent:${{ github.event.release.tag_name }}
-          context: .
-          file: ./Dockerfile
 
       - name: Build and push Docker image tag latest
         uses: docker/build-push-action@v2.3.0
