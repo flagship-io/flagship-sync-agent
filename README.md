@@ -66,6 +66,7 @@ Environment variables:
 
 ## API docs
 
-| route      | Description                 |
-| ---------- | --------------------------- |
-| /bucketing | Get the Json bucketing file |
+| route         | Description                                           |
+| ------------- | ----------------------------------------------------- |
+| /bucketing    | Get the Json bucketing file                           |
+| /health_check | Return http code 200 to check if the sync agent is up |
