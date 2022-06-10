@@ -19,6 +19,8 @@ func setupRouter(bucketingPolling *lib.BucketingPolling) *gin.Engine {
 
 	router.GET("/bucketing", bucketingController.GetBucketing)
 
+	router.GET("/health_check", bucketingController.HealthCheck)
+
 	return router
 }
 
