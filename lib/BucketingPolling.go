@@ -74,7 +74,7 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 
 	if len(body) > 0 {
 		bucketingPolling.BucketingFile = body
-		fmt.Println(fmt.Sprintf("Polling event with code status 200 : %s", body))
+		fmt.Printf("Polling event with code status 200 : %s", body)
 	} else {
 		fmt.Println("Polling event with code status " + strconv.Itoa(response.StatusCode))
 	}
