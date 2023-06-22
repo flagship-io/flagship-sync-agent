@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	BucketingApiUrl   = "https://cdn.flagship.io/%s/bucketing.json"
-	IF_MODIFIED_SINCE = "if-modified-since"
-	LAST_MODIFIED     = "last-modified"
+	BucketingApiUrl    = "https://cdn.flagship.io/%s/bucketing.json"
+	IF_MODIFIED_SINCE  = "if-modified-since"
+	LAST_MODIFIED      = "last-modified"
+	HTTP_ERROR_MESSAGE = "Error status code: %d with message: %s"
 )
 
 type BucketingPolling struct {
@@ -69,7 +70,7 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 	}
 
 	if response.StatusCode != 200 && response.StatusCode != 304 {
-		return fmt.Errorf("Error status code: %d with message: %s", response.StatusCode, body)
+		return fmt.Errorf(HTTP_ERROR_MESSAGE, response.StatusCode, body)
 	}
 
 	if len(body) > 0 {
