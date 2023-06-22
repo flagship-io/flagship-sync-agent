@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -61,37 +62,33 @@ func (bucketingPolling *BucketingPolling) Polling() error {
 		}
 	}(response.Body)
 
-	if response.StatusCode != 200 && response.StatusCode != 304 {
-		return fmt.Errorf("%s", response.Body)
-	}
-
 	body, err := io.ReadAll(response.Body)
 
 	if err != nil {
 		return err
 	}
 
+	if response.StatusCode != 200 && response.StatusCode != 304 {
+		return fmt.Errorf("Error status code: %d with message: %s", response.StatusCode, body)
+	}
+
 	if len(body) > 0 {
 		bucketingPolling.BucketingFile = body
+		fmt.Println(fmt.Sprintf("Polling event with code status 200 : %s", body))
+	} else {
+		fmt.Println("Polling event with code status " + strconv.Itoa(response.StatusCode))
 	}
 
 	return nil
 }
 
 func (bucketingPolling *BucketingPolling) StartPolling() {
+	fmt.Println("Polling start")
 	for {
-		fmt.Println("Polling start")
-
 		err := bucketingPolling.Polling()
-
 		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println("Polling success")
+			fmt.Println(err.Error())
 		}
-
-		fmt.Println("Polling end")
-
 		if bucketingPolling.FlagshipConfig.PollingInterval == 0 {
 			break
 		}
