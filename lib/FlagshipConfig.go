@@ -3,6 +3,7 @@ package lib
 import (
 	"flag"
 	"fmt"
+	"strconv"
 )
 
 const (
@@ -10,10 +11,10 @@ const (
 	FS_POLLING_INTERVAL       = "FS_POLLING_INTERVAL"
 	FS_PORT                   = "FS_PORT"
 	FS_ADDRESS                = "FS_ADDRESS"
-	FlagshipEnvIdErrorMessage = "argument envId is required"
+	FlagshipEnvIdErrorMessage = "Argument `--envId` is required"
 	DEFAULT_PORT              = 8080
 	DEFAULT_ADDRESS           = "0.0.0.0"
-	DEFAULT_POLLING_INTERVAL  = 2000
+	DEFAULT_POLLING_INTERVAL  = 10000
 )
 
 type FlagshipConfig struct {
@@ -25,10 +26,10 @@ type FlagshipConfig struct {
 
 func (flagshipConfig *FlagshipConfig) New() (*FlagshipConfig, error) {
 
-	envId := flag.String("envId", "", "environment Id")
-	port := flag.Int("port", DEFAULT_PORT, "Http endpoint port. Default: 8080")
-	address := flag.String("address", DEFAULT_ADDRESS, "Http endpoint address. Default: 0.0.0.0")
-	pollingInterval := flag.Int("pollingInterval", DEFAULT_POLLING_INTERVAL, "pollingInterval")
+	envId := flag.String("envId", "", "Environment Id")
+	port := flag.Int("port", 0, "Http endpoint port. Default: "+strconv.Itoa(DEFAULT_PORT))
+	address := flag.String("address", "", "Http endpoint address. Default: "+DEFAULT_ADDRESS)
+	pollingInterval := flag.Int("pollingInterval", 0, "pollingInterval")
 
 	flag.Parse()
 
@@ -37,20 +38,26 @@ func (flagshipConfig *FlagshipConfig) New() (*FlagshipConfig, error) {
 	}
 	flagshipConfig.EnvId = *envId
 
-	if *port == DEFAULT_PORT {
-		fmt.Println("argument port is empty or not set, default value will be used 8080")
+	if *port == 0 {
+		fmt.Println("Argument `--port` is not set, default value will be used " + strconv.Itoa(DEFAULT_PORT))
+		flagshipConfig.Port = DEFAULT_PORT
+	} else {
+		flagshipConfig.Port = *port
 	}
-	flagshipConfig.Port = *port
 
-	if *address == DEFAULT_ADDRESS {
-		fmt.Println("argument address is empty or not set, default value will be used 0.0.0.0")
+	if *address == "" {
+		fmt.Println("Argument `--address` is not set, default value will be used " + DEFAULT_ADDRESS)
+		flagshipConfig.Address = DEFAULT_ADDRESS
+	} else {
+		flagshipConfig.Address = *address
 	}
-	flagshipConfig.Address = *address
 
-	if *pollingInterval == DEFAULT_POLLING_INTERVAL {
-		fmt.Println("argument pollingInterval is empty or not set, default value will be used 2000ms")
+	if *pollingInterval == 0 {
+		fmt.Println("Argument `--pollingInterval` is not set, default value will be used " + strconv.Itoa(DEFAULT_POLLING_INTERVAL) + "ms")
+		flagshipConfig.PollingInterval = DEFAULT_POLLING_INTERVAL
+	} else {
+		flagshipConfig.PollingInterval = *pollingInterval
 	}
-	flagshipConfig.PollingInterval = *pollingInterval
 
 	return flagshipConfig, nil
 }

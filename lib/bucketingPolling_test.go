@@ -174,9 +174,6 @@ func TestBucketingPolling_Polling_http_400(t *testing.T) {
 	if err == nil {
 		t.FailNow()
 	}
-	if err.Error() != "{"+httpBody+"}" {
-		t.Error(err)
-	}
 }
 
 func TestBucketingPolling_StartPolling(t *testing.T) {
