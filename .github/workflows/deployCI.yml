@@ -56,4 +56,4 @@ jobs:
           goarch: ${{ matrix.goarch }}
           goversion: "https://dl.google.com/go/go1.20.5.linux-amd64.tar.gz"
           sha256sum: true
-          extra_files: readme.md
+          extra_files: README.md
